@@ -1,0 +1,69 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 20, 4); // Ganti 0x27 dengan alamat I2C LCD yang benar
+
+int redLed = 3;
+int greenLed = 2;
+int buzzer = 4;
+int smokeA0 = A1;
+int kipas = 5;
+
+int sensorThres = 101;
+
+void setup() {
+  lcd.init();  // Inisialisasi LCD
+  lcd.backlight();  // Nyalakan backlight LCD (jika LCD memiliki backlight)
+
+  pinMode(redLed, OUTPUT);
+  pinMode(greenLed, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  pinMode(smokeA0, INPUT);
+  pinMode(kipas, OUTPUT);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  int analogSensor = analogRead(smokeA0);
+
+  Serial.print("pin A0: ");
+  Serial.println(analogSensor);
+
+  lcd.setCursor(0, 0);
+  lcd.print("AQ Indicator: ");
+  lcd.setCursor(13, 0);
+  lcd.print(analogSensor);
+
+  if (analogSensor >= sensorThres) {
+    digitalWrite(redLed, HIGH);
+    analogWrite(greenLed, LOW);
+    digitalWrite(kipas, HIGH);
+    tone(buzzer, 1000, 6000);
+
+    lcd.setCursor(0, 1);
+    lcd.print("Udara");
+    delay(500);
+
+    lcd.setCursor(6, 1);
+    lcd.print("Berbahaya");
+    delay(500);
+
+  } else {
+    digitalWrite(redLed, LOW);
+    digitalWrite(greenLed, HIGH);
+    digitalWrite(kipas, LOW);
+    noTone(buzzer);
+
+    lcd.setCursor(0, 1);
+    lcd.print("Udara");
+    delay(500);
+
+    lcd.setCursor(7, 1);
+    lcd.print("Aman");
+    delay(1000);
+  }
+
+  delay(100);
+  lcd.clear();
+}
